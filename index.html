@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AHMAD AI SYSTEM V8</title>
+
+<style>
+body{
+  margin:0;
+  background:black;
+  font-family:monospace;
+  overflow:hidden;
+  color:#00f0ff;
+}
+
+/* MATRIX BACKGROUND */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:0;
+  opacity:0.18;
+}
+
+/* CENTER */
+#wrap{
+  position:relative;
+  z-index:2;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* TERMINAL */
+.box{
+  width:92%;
+  max-width:540px;
+  height:78vh;
+  background:rgba(10,15,30,0.95);
+  border:1px solid #00f0ff;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 0 25px #00f0ff22;
+}
+
+#screen{
+  flex:1;
+  padding:10px;
+  overflow:auto;
+  font-size:13px;
+}
+
+.line{margin:6px 0}
+.user{color:#6aa6ff}
+.ai{color:#00f0ff}
+.sys{color:#ff4d6d}
+
+/* INPUT */
+.bottom{
+  display:flex;
+  border-top:1px solid #00f0ff33;
+}
+
+input{
+  flex:1;
+  padding:12px;
+  background:#0a0f1f;
+  border:none;
+  color:#00f0ff;
+  outline:none;
+}
+
+button{
+  width:90px;
+  background:#00f0ff;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+/* ADMIN PANEL */
+.admin{
+  background:#111;
+  border:1px solid red;
+  padding:10px;
+  color:#ff4d6d;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div id="wrap">
+  <div class="box">
+
+    <div id="screen">
+      <div class="line sys">SYSTEM ONLINE - AHMAD AI V8</div>
+      <div class="line sys">Type: help</div>
+    </div>
+
+    <div class="bottom">
+      <input id="input" placeholder="Enter command...">
+      <button onclick="send()">SEND</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyChfStXSUt7iazC3RlF0fKF9H4Mr_BBbBM",
+  authDomain: "ahmadai-9afeb.firebaseapp.com",
+  projectId: "ahmadai-9afeb",
+  storageBucket: "ahmadai-9afeb.firebasestorage.app",
+  messagingSenderId: "893222793843",
+  appId: "1:893222793843:web:f436a84b54847f8203b006"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const stats = doc(db,"system","global");
+
+await setDoc(stats,{visitors:0,messages:0,countries:{}},{merge:true});
+
+/* VISIT */
+async function visit(){
+  await updateDoc(stats,{visitors:increment(1)});
+
+  try{
+    let g=await fetch("https://ipapi.co/json/");
+    let d=await g.json();
+
+    let snap=await getDoc(stats);
+    let data=snap.data();
+
+    let c=data.countries||{};
+    c[d.country_name||"Unknown"]=(c[d.country_name||"Unknown"]||0)+1;
+
+    await updateDoc(stats,{countries:c});
+  }catch{}
+}
+visit();
+
+/* GLOBAL SEND */
+window.send = async function(){
+
+  let input=document.getElementById("input");
+  let screen=document.getElementById("screen");
+
+  let text=input.value.trim();
+  if(!text) return;
+
+  screen.innerHTML+=`<div class="line user">YOU: ${text}</div>`;
+
+  await updateDoc(stats,{messages:increment(1)});
+
+  /* ADMIN MODE */
+  if(text==="ahmad"){
+    let pass=prompt("Admin Password:");
+    if(pass!=="A2026") return alert("Wrong password");
+
+    let snap=await getDoc(stats);
+    let d=snap.data();
+
+    screen.innerHTML+=`
+      <div class="admin">
+      <h3>ADMIN CONSOLE</h3>
+      Visitors: ${d.visitors}<br>
+      Messages: ${d.messages}<br>
+      Countries:<br>
+      ${Object.entries(d.countries||{}).map(([k,v])=>k+" : "+v).join("<br>")}
+      </div>
+    `;
+    return;
+  }
+
+  let reply="Processing neural input...";
+
+  if(text.includes("time")) reply=new Date().toLocaleTimeString();
+  else if(text.includes("date")) reply=new Date().toLocaleDateString();
+  else if(text.includes("help")) reply="commands: time, date, system, owner";
+  else if(text.includes("owner")) reply="AHMAD ALMUTAIRI";
+  else if(text.includes("system")) reply="All systems stable";
+
+  screen.innerHTML+=`<div class="line ai">AI: ${reply}</div>`;
+  screen.scrollTop=screen.scrollHeight;
