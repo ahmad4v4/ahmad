@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ahmad AI System v1.0</title>
+
+<style>
+body{
+  margin:0;
+  font-family: monospace;
+  background:black;
+  overflow:hidden;
+  color:#d7e3ff;
+}
+
+/* MATRIX */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:0;
+  opacity:0.5;
+}
+
+/* LOGIN */
+#login{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:3;
+}
+
+.card{
+  background:rgba(5,8,15,0.95);
+  border:1px solid rgba(120,160,255,0.25);
+  padding:35px;
+  border-radius:14px;
+  text-align:center;
+}
+
+input{
+  display:block;
+  margin:10px auto;
+  padding:12px;
+  width:220px;
+  background:#0b1220;
+  border:1px solid rgba(120,160,255,0.4);
+  color:#fff;
+}
+
+button{
+  padding:10px 18px;
+  background:linear-gradient(90deg,#4f8cff,#00c6ff);
+  border:none;
+  color:white;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+/* PANEL */
+#panel{
+  display:none;
+  position:relative;
+  z-index:2;
+  height:100vh;
+  padding:15px;
+}
+
+.window{
+  height:100%;
+  background:rgba(5,8,15,0.92);
+  border:1px solid rgba(120,160,255,0.2);
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{
+  padding:10px;
+  border-bottom:1px solid rgba(120,160,255,0.2);
+}
+
+.screen{
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+}
+
+.line{ margin:5px 0; }
+.user{ color:#7aa2ff; }
+.ai{ color:#e6ecff; }
+.sys{ color:#ff4d6d; }
+
+.inputBox{
+  display:flex;
+  border-top:1px solid rgba(120,160,255,0.2);
+}
+
+.inputBox input{
+  flex:1;
+  border:none;
+  padding:14px;
+  background:#0b1220;
+  color:#fff;
+}
+
+/* POPUP */
+.popup{
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+}
+
+.popupBox{
+  background:#0b1220;
+  padding:25px;
+  border:1px solid #4f8cff;
+  border-radius:10px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="card">
+    <h2>Ahmad AI System v1.0</h2>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="enter()">ENTER</button>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div id="panel">
+
+  <div class="window">
+
+    <div class="topbar">
+      AI CORE SYSTEM • ONLINE
+    </div>
+
+    <div class="screen" id="screen">
+      <div class="line sys">SYSTEM: Ready...</div>
+    </div>
+
+    <div class="inputBox">
+      <input id="input" placeholder="Ask AI...">
+      <button onclick="send()">SEND</button>
+    </div>
+
+  </div>
+
+  <button onclick="systemReport()" style="position:absolute;top:10px;right:10px;">
+    SYSTEM REPORT
+  </button>
+
+</div>
+
+<!-- POPUP -->
+<div class="popup" id="popup">
+  <div class="popupBox">
+    <h3>Report Sent</h3>
+    <pre id="reportText"></pre>
+  </div>
+</div>
+
+<script>
+
+/* MATRIX */
+const c=document.getElementById("matrix");
+const x=c.getContext("2d");
+
+c.height=window.innerHeight;
+c.width=window.innerWidth;
+
+let chars="01ABCDEF#$%&*";
+chars=chars.split("");
+
+let font=12;
+let cols=c.width/font;
+let drops=[];
+for(let i=0;i<cols;i++)drops[i]=1;
+
+function draw(){
+  x.fillStyle="rgba(0,0,0,0.08)";
+  x.fillRect(0,0,c.width,c.height);
+
+  x.fillStyle="#4f8cff";
+  x.font=font+"px monospace";
+
+  for(let i=0;i<drops.length;i++){
+    let t=chars[Math.floor(Math.random()*chars.length)];
+    x.fillText(t,i*font,drops[i]*font);
+
+    if(drops[i]*font>c.height && Math.random()>0.975)
+      drops[i]=0;
+
+    drops[i]++;
+  }
+}
+setInterval(draw,30);
+
+/* LOGIN */
+function enter(){
+  if(!user.value || !pass.value){
+    alert("ERROR: Fill all fields");
+    return;
+  }
+  login.style.display="none";
+  panel.style.display="block";
+}
+
+/* AI */
+function send(){
+  let inp=input.value;
+  if(!inp)return;
+
+  screen.innerHTML+=`<div class='line user'>YOU: ${inp}</div>`;
+
+  let reply=[
+    "Processing...",
+    "Neural analysis complete.",
+    "System response generated.",
+    "AI core active.",
+    "Data interpreted."
+  ][Math.floor(Math.random()*5)];
+
+  setTimeout(()=>{
+    screen.innerHTML+=`<div class='line ai'>AI: ${reply}</div>`;
+  },400);
+
+  input.value="";
+}
+
+/* TELEGRAM (YOU ONLY EDIT THIS) */
+const BOT_TOKEN = "AAE0V9VKV67f7db0Ef2HjXXwlNk8rLuyH4U";
+const CHAT_ID = "679522689";
+
+/* SEND TO TELEGRAM */
+function sendToTelegram(msg){
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      chat_id:CHAT_ID,
+      text:msg
+    })
+  });
+}
+
+/* SYSTEM REPORT */
+async function systemReport(){
+
+  if(!confirm("Allow system to send report?")) return;
+
+  let ipData = await fetch("https://ipapi.co/json/").then(r=>r.json());
+
+  let report =
+`SYSTEM REPORT
+IP: ${ipData.ip}
+COUNTRY: ${ipData.country_name}
+DEVICE: ${navigator.userAgent}
+TIME: ${new Date().toLocaleString()}`;
+
+  document.getElementById("reportText").innerText=report;
+  document.getElementById("popup").style.display="flex";
+
+  sendToTelegram(report);
+
+  setTimeout(()=>{
+    document.getElementById("popup").style.display="none";
+  },3000);
+}
+
+</script>
+
+</body>
+</html>
